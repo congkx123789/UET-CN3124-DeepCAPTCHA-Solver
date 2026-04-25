@@ -9,12 +9,7 @@ This project demonstrates an automated attack against a CAPTCHA-protected system
 - `dataset/`: Training and validation data (generated).
 - `solver/`: Exploit script that uses the trained AI to bypass the server.
 
-## Hardware Optimization
 
-The training script is optimized for:
-- **GPU**: NVIDIA RTX 5060 Ti (16GB VRAM)
-- **RAM**: 64GB
-- **OS**: Ubuntu / Linux
 
 ## Getting Started
 
