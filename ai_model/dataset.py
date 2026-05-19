@@ -5,12 +5,29 @@ from PIL import Image
 import torchvision.transforms as T
 
 class CaptchaDataset(Dataset):
-    def __init__(self, root_dir, characters, transform=None):
+    def __init__(self, root_dir, characters, augment=False, transform=None):
         self.root_dir = root_dir
+        self.augment = augment
         self.transform = transform
         self.characters = characters
         self.char_to_idx = {char: idx + 1 for idx, char in enumerate(characters)} # 0 is blank for CTC
         self.images = [f for f in os.listdir(root_dir) if f.endswith('.png')]
+
+        # Define default transforms
+        if self.augment:
+            self.default_transform = T.Compose([
+                T.ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3),
+                T.RandomRotation(degrees=20, expand=False),
+                T.Resize((64, 160)),
+                T.ToTensor(),
+                T.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+            ])
+        else:
+            self.default_transform = T.Compose([
+                T.Resize((64, 160)),
+                T.ToTensor(),
+                T.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+            ])
 
     def __len__(self):
         return len(self.images)
@@ -26,12 +43,7 @@ class CaptchaDataset(Dataset):
         if self.transform:
             image = self.transform(image)
         else:
-            # Default transform
-            image = T.Compose([
-                T.Resize((64, 160)),
-                T.ToTensor(),
-                T.Normalize((0.5,), (0.5,))
-            ])(image)
+            image = self.default_transform(image)
             
         label = [self.char_to_idx[char] for char in label_text]
         label = torch.LongTensor(label)

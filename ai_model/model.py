@@ -42,12 +42,11 @@ class CRNN(nn.Module):
         self.conv_final = nn.Conv2d(512, 512, kernel_size=1)
         
         # RNN for sequence modeling
-        self.rnn = nn.Sequential(
-            nn.LSTM(512, hidden_size, bidirectional=True, num_layers=2, batch_first=False)
-        )
+        self.rnn = nn.LSTM(512, 512, bidirectional=True, num_layers=2, batch_first=False)
+        self.dropout = nn.Identity() # Placeholder to avoid changing forward pass logic
         
         # Fully connected layer for character classification
-        self.fc = nn.Linear(hidden_size * 2, num_chars)
+        self.fc = nn.Linear(512 * 2, num_chars)
 
     def forward(self, x):
         # x: [batch, 3, height, width]
@@ -61,13 +60,14 @@ class CRNN(nn.Module):
         conv = conv.permute(2, 0, 1) # [w', batch, 512] (Sequence first for LSTM)
         
         output, _ = self.rnn(conv)
+        output = self.dropout(output)
         
         seq_len, batch_size, _ = output.size()
         output = output.view(seq_len * batch_size, -1)
         output = self.fc(output)
         output = output.view(seq_len, batch_size, -1) # [seq_len, batch, num_chars]
         
-        return output
+        return torch.log_softmax(output, dim=2)
 
 if __name__ == "__main__":
     # Test model

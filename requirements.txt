@@ -1,0 +1,10 @@
+torch
+torchvision
+fastapi
+uvicorn
+jinja2
+requests
+pillow
+numpy
+tqdm
+opencv-python

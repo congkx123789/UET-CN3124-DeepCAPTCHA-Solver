@@ -11,8 +11,7 @@ idx_to_char = {idx + 1: char for idx, char in enumerate(CHARACTERS)}
 def decode_prediction(outputs):
     # outputs: [seq_len, batch, num_chars]
     # We take the argmax for the first element in the batch
-    probs = torch.softmax(outputs, dim=2)
-    _, preds = torch.max(probs, dim=2)
+    _, preds = torch.max(outputs, dim=2)
     preds = preds.transpose(1, 0).contiguous() # [batch, seq_len]
     
     decoded_text = ""
@@ -35,7 +34,7 @@ def preprocess_image(image_b64):
     transform = T.Compose([
         T.Resize((64, 160)),
         T.ToTensor(),
-        T.Normalize((0.5,), (0.5,))
+        T.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     ])
     
     return transform(image).unsqueeze(0) # Add batch dimension

@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI CAPTCHA Solver | Hacker Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #050a0f;
+            --panel-bg: rgba(13, 25, 39, 0.8);
+            --primary-neon: #00f2ff;
+            --secondary-neon: #7000ff;
+            --success-neon: #39ff14;
+            --danger-neon: #ff003c;
+            --text-color: #e0e6ed;
+            --border-glow: 0 0 10px rgba(0, 242, 255, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Fira Code', monospace;
+            overflow: hidden;
+            background-image: 
+                radial-gradient(circle at 50% 50%, rgba(0, 242, 255, 0.05) 0%, transparent 70%),
+                linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+                linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 100%, 100% 2px, 3px 100%;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 350px 1fr 350px;
+            grid-template-rows: 80px 1fr 200px;
+            height: 100vh;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        header {
+            grid-column: 1 / -1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--primary-neon);
+            padding-bottom: 10px;
+            box-shadow: 0 5px 15px rgba(0, 242, 255, 0.1);
+        }
+
+        .logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary-neon);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: var(--border-glow);
+        }
+
+        .status-badge {
+            padding: 5px 15px;
+            border: 1px solid var(--primary-neon);
+            border-radius: 20px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--success-neon);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--success-neon);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        /* Side Panels */
+        .panel {
+            background: var(--panel-bg);
+            border: 1px solid rgba(0, 242, 255, 0.2);
+            border-radius: 10px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .panel-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 14px;
+            color: var(--primary-neon);
+            border-left: 3px solid var(--primary-neon);
+            padding-left: 10px;
+            margin-bottom: 10px;
+        }
+
+        /* Center Display */
+        .main-display {
+            grid-column: 2 / 3;
+            grid-row: 2 / 3;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 30px;
+            position: relative;
+        }
+
+        .captcha-box {
+            width: 400px;
+            height: 200px;
+            border: 2px solid var(--primary-neon);
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(0, 242, 255, 0.1);
+        }
+
+        .captcha-box img {
+            max-width: 90%;
+            filter: contrast(1.2) brightness(1.1);
+        }
+
+        .scan-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--primary-neon);
+            box-shadow: 0 0 15px var(--primary-neon);
+            animation: scan 2s linear infinite;
+            z-index: 2;
+        }
+
+        @keyframes scan {
+            0% { top: 0; }
+            100% { top: 100%; }
+        }
+
+        .prediction-text {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 48px;
+            font-weight: 700;
+            letter-spacing: 10px;
+            color: var(--primary-neon);
+            text-shadow: 0 0 20px var(--primary-neon);
+            min-height: 60px;
+        }
+
+        /* Stats & Logs */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            color: var(--primary-neon);
+            font-weight: bold;
+        }
+
+        .stat-label {
+            font-size: 10px;
+            opacity: 0.7;
+            text-transform: uppercase;
+        }
+
+        #log-container {
+            flex-grow: 1;
+            overflow-y: auto;
+            font-size: 11px;
+            color: #8899aa;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            scrollbar-width: thin;
+        }
+
+        .log-entry {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 3px;
+        }
+
+        .log-time { color: var(--primary-neon); margin-right: 5px; }
+        .log-success { color: var(--success-neon); }
+        .log-fail { color: var(--danger-neon); }
+
+        /* Progress Area */
+        .bottom-panel {
+            grid-column: 1 / -1;
+            grid-row: 3 / 4;
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 40px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--primary-neon);
+            border-radius: 5px;
+            position: relative;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--secondary-neon), var(--primary-neon));
+            box-shadow: 0 0 20px var(--primary-neon);
+            transition: width 0.5s ease;
+            position: relative;
+        }
+
+        .progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: bold;
+            z-index: 5;
+            text-shadow: 0 0 5px black;
+        }
+
+        /* Control Buttons */
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        button {
+            background: transparent;
+            border: 1px solid var(--primary-neon);
+            color: var(--primary-neon);
+            padding: 10px 30px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        button:hover {
+            background: var(--primary-neon);
+            color: var(--bg-color);
+            box-shadow: 0 0 20px var(--primary-neon);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Flag Overlay */
+        #flag-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            animation: fadeIn 1s;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .flag-text {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 64px;
+            color: var(--success-neon);
+            text-shadow: 0 0 30px var(--success-neon);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .flag-value {
+            font-size: 32px;
+            background: rgba(57, 255, 20, 0.1);
+            padding: 20px;
+            border: 1px dashed var(--success-neon);
+            color: var(--text-color);
+        }
+    </style>
+</head>
+<body>
+    <div id="flag-overlay">
+        <div class="flag-text">SYSTEM COMPROMISED</div>
+        <div class="flag-value" id="final-flag">FLAG{UET_AI_Bypass_Success}</div>
+        <button onclick="location.reload()" style="margin-top: 40px;">Restart Session</button>
+    </div>
+
+    <div class="container">
+        <header>
+            <div class="logo">AI Captcha Exploit Console</div>
+            <div class="status-badge">
+                <div class="status-dot"></div>
+                TARGET: LOCALHOST:8001 (ACTIVE)
+            </div>
+        </header>
+
+        <aside class="panel">
+            <div class="panel-title">System Metrics</div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-attempts">0</div>
+                    <div class="stat-label">Attempts</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-accuracy">0%</div>
+                    <div class="stat-label">Model Acc</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-speed">~85ms</div>
+                    <div class="stat-label">Inf Speed</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-streak">0/50</div>
+                    <div class="stat-label">Best Streak</div>
+                </div>
+            </div>
+            
+            <div class="panel-title" style="margin-top: 20px;">AI Model Specs</div>
+            <div style="font-size: 11px; line-height: 1.6; opacity: 0.8;">
+                TYPE: CRNN + Bi-LSTM<br>
+                LOSS: CTC Loss<br>
+                DEVICE: CUDA Accelerate<br>
+                INPUT: 160x64 RGB
+            </div>
+        </aside>
+
+        <main class="main-display">
+            <div class="panel-title">Neural Network Feed</div>
+            <div class="captcha-box">
+                <div class="scan-line"></div>
+                <img id="captcha-img" src="" alt="Waiting for challenge...">
+            </div>
+            
+            <div class="prediction-area">
+                <div style="font-size: 12px; opacity: 0.6; text-align: center; margin-bottom: 5px;">AI PREDICTION:</div>
+                <div class="prediction-text" id="pred-output">----</div>
+            </div>
+
+            <div class="controls">
+                <button id="start-btn">Initialize Attack</button>
+                <button id="stop-btn" disabled>Abort</button>
+            </div>
+        </main>
+
+        <aside class="panel">
+            <div class="panel-title">Exploit Logs</div>
+            <div id="log-container">
+                <div class="log-entry">Waiting for user initialization...</div>
+            </div>
+        </aside>
+
+        <footer class="panel bottom-panel">
+            <div class="panel-title">Attack Progress (Target Goal: 50 Success)</div>
+            <div class="progress-container">
+                <div class="progress-bar" id="p-bar"></div>
+                <div class="progress-text" id="p-text">0/50</div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        const captchaImg = document.getElementById('captcha-img');
+        const predOutput = document.getElementById('pred-output');
+        const startBtn = document.getElementById('start-btn');
+        const stopBtn = document.getElementById('stop-btn');
+        const logContainer = document.getElementById('log-container');
+        const progressBar = document.getElementById('p-bar');
+        const progressText = document.getElementById('p-text');
+        
+        // Stats
+        const statAttempts = document.getElementById('stat-attempts');
+        const statStreak = document.getElementById('stat-streak');
+        
+        let session_id = null;
+        let running = false;
+        let streak = 0;
+        let attempts = 0;
+        let bestStreak = 0;
+
+        function addLog(msg, type = '') {
+            const time = new Date().toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            const div = document.createElement('div');
+            div.className = 'log-entry';
+            div.innerHTML = `<span class="log-time">[${time}]</span> <span class="log-${type}">${msg}</span>`;
+            logContainer.prepend(div);
+        }
+
+        async function startAttack() {
+            running = true;
+            startBtn.disabled = true;
+            stopBtn.disabled = false;
+            attempts++;
+            statAttempts.innerText = attempts;
+            
+            addLog("Initializing secure session...", "success");
+            
+            try {
+                const resp = await fetch('/challenge');
+                const data = await resp.json();
+                session_id = data.session_id;
+                captchaImg.src = `data:image/png;base64,${data.image}`;
+                
+                addLog(`Session created: ${session_id.substring(0,8)}...`);
+                runLoop(data.image);
+            } catch (e) {
+                addLog("Connection failed. Retrying...", "fail");
+                running = false;
+                startBtn.disabled = false;
+            }
+        }
+
+        async function runLoop(currentImageB64) {
+            if (!running) return;
+
+            // 1. Predict
+            predOutput.innerText = "....";
+            try {
+                const predResp = await fetch('/ai_predict', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ image: currentImageB64 })
+                });
+                const predData = await predResp.json();
+                const prediction = predData.prediction;
+                
+                // Typing effect
+                predOutput.innerText = "";
+                for(let char of prediction) {
+                    predOutput.innerText += char;
+                    await new Promise(r => setTimeout(r, 50));
+                }
+                
+                addLog(`Predicted: ${prediction}`);
+
+                // 2. Verify
+                const verifyResp = await fetch('/verify', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ session_id, answer: prediction })
+                });
+                const verifyData = await verifyResp.json();
+
+                if (verifyData.status === 'correct' || verifyData.status === 'success') {
+                    streak++;
+                    if(streak > bestStreak) {
+                        bestStreak = streak;
+                        statStreak.innerText = `${bestStreak}/50`;
+                    }
+                    
+                    updateProgress(streak);
+                    addLog(`Success! Streak: ${streak}/50`, "success");
+
+                    if (verifyData.flag) {
+                        document.getElementById('final-flag').innerText = verifyData.flag;
+                        document.getElementById('flag-overlay').style.display = 'flex';
+                        running = false;
+                        return;
+                    }
+
+                    // Next image
+                    captchaImg.src = `data:image/png;base64,${verifyData.next_image}`;
+                    setTimeout(() => runLoop(verifyData.next_image), 800);
+                } else {
+                    addLog(`Failed: ${verifyData.message}. Resetting...`, "fail");
+                    streak = 0;
+                    updateProgress(0);
+                    setTimeout(startAttack, 2000);
+                }
+            } catch (e) {
+                addLog(`Error: ${e.message}`, "fail");
+                running = false;
+                startBtn.disabled = false;
+            }
+        }
+
+        function updateProgress(val) {
+            const percent = (val / 50) * 100;
+            progressBar.style.width = `${percent}%`;
+            progressText.innerText = `${val}/50`;
+        }
+
+        startBtn.onclick = startAttack;
+        stopBtn.onclick = () => {
+            running = false;
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+            addLog("Attack aborted by operator.", "fail");
+        };
+    </script>
+</body>
+</html>

@@ -8,29 +8,42 @@ This project demonstrates an automated attack against a CAPTCHA-protected system
 - `ai_model/`: PyTorch implementation of the OCR model (CRNN).
 - `dataset/`: Training and validation data (generated).
 - `solver/`: Exploit script that uses the trained AI to bypass the server.
+- `logs/`: Persistent execution logs for training and exploit automation.
+- `logbook.md`: Detailed work journal tracking hypotheses, commands, and troubleshooting over 30 hours.
 
 
 
 ## Getting Started
 
-### 1. Install Dependencies
+### 1. Setup Isolated Environment (Recommended)
+To satisfy the strict "clean environment" security requirement, the Target Server is containerized via Docker, and the AI Solver runs in a Python Virtual Environment.
+
+#### Start the Server (Docker)
 ```bash
-cd server
-pip install -r requirements.txt
-pip install torch torchvision opencv-python
+# Build and run the server using docker-compose
+docker-compose up -d --build
+```
+*The server will be available at http://localhost:8000*
+
+#### Setup Client/Solver Workspace (Virtual Environment)
+```bash
+# Create a virtual environment
+python -m venv venv
+
+# Activate it (Linux/Mac)
+source venv/bin/activate
+# Or on Windows: venv\Scripts\activate
+
+# Install dependencies for AI and Exploit
+pip install -r server/requirements.txt
+pip install torch torchvision opencv-python requests pillow
 ```
 
 ### 2. Generate Dataset
 You need to generate images before training.
 ```bash
-# Example command (create a script or run the generator in a loop)
+# Ensure venv is activated
 python server/captcha_gen.py --count 20000
-```
-
-### 3. Start the Server
-```bash
-cd server
-uvicorn main:app --reload --port 8000
 ```
 
 ### 4. Train the AI

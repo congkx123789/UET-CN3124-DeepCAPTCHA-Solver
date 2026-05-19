@@ -21,5 +21,5 @@ if __name__ == "__main__":
     parser.add_argument("--val", type=int, default=5000)
     args = parser.parse_args()
     
-    generate_bulk(args.train, "CTF_Auto_Solver/dataset/train")
-    generate_bulk(args.val, "CTF_Auto_Solver/dataset/val")
+    generate_bulk(args.train, "dataset/train")
+    generate_bulk(args.val, "dataset/val")

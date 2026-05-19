@@ -10,7 +10,9 @@ class CaptchaGenerator:
         self.characters = characters
         self.font_path = font_path or "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf"
         
-    def _get_random_text(self, length=5):
+    def _get_random_text(self):
+        # Variable length from 4 to 7
+        length = random.randint(4, 7)
         return ''.join(random.choices(self.characters, k=length))
 
     def _get_random_color(self, start=0, end=200):
@@ -25,42 +27,54 @@ class CaptchaGenerator:
         draw = ImageDraw.Draw(image)
         
         # Add some noise lines
-        for _ in range(random.randint(2, 5)):
+        for _ in range(random.randint(10, 20)):
             draw.line(
                 [(random.randint(0, self.width), random.randint(0, self.height)),
                  (random.randint(0, self.width), random.randint(0, self.height))],
-                fill=self._get_random_color(150, 255), width=2
+                fill=self._get_random_color(80, 255), width=random.randint(1, 4)
             )
             
-        # Draw text
-        try:
-            font = ImageFont.truetype(self.font_path, 36)
-        except:
-            font = ImageFont.load_default()
+        # Add some random circles/ellipses
+        for _ in range(random.randint(3, 8)):
+            x = random.randint(0, self.width)
+            y = random.randint(0, self.height)
+            r = random.randint(5, 25)
+            draw.ellipse([x-r, y-r, x+r, y+r], outline=self._get_random_color(100, 255), width=random.randint(1, 3))
             
-        text_width = draw.textlength(text, font=font)
-        start_x = (self.width - text_width) / 2
+        # Draw text
+        total_chars = len(text)
+        # Dynamic start position and spacing to create overlap
+        char_spacing = (self.width - 40) / total_chars
         
         for i, char in enumerate(text):
-            char_image = Image.new('RGBA', (40, 50), (255, 255, 255, 0))
+            # Vary font size slightly
+            font_size = random.randint(32, 42)
+            try:
+                font = ImageFont.truetype(self.font_path, font_size)
+            except:
+                font = ImageFont.load_default()
+                
+            char_image = Image.new('RGBA', (45, 55), (255, 255, 255, 0))
             char_draw = ImageDraw.Draw(char_image)
-            char_draw.text((5, 0), char, font=font, fill=self._get_random_color(0, 100))
+            char_draw.text((5, 0), char, font=font, fill=self._get_random_color(0, 50))
             
-            # Rotate character
-            char_image = char_image.rotate(random.randint(-30, 30), expand=1)
+            # Rotate character (extreme range)
+            char_image = char_image.rotate(random.randint(-50, 50), expand=1)
             
-            # Paste character onto main image
-            image.paste(char_image, (int(start_x + i * 25), random.randint(5, 15)), char_image)
+            # Paste character onto main image with significant overlap potential
+            x_pos = int(10 + i * char_spacing + random.randint(-5, 5))
+            y_pos = random.randint(0, 15)
+            image.paste(char_image, (x_pos, y_pos), char_image)
 
-        # Add salt and pepper noise
+        # Add salt and pepper noise (increased density)
         pixels = image.load()
-        for _ in range(int(self.width * self.height * 0.05)):
+        for _ in range(int(self.width * self.height * 0.15)):
             x = random.randint(0, self.width - 1)
             y = random.randint(0, self.height - 1)
             pixels[x, y] = self._get_random_color(0, 255)
 
         # Apply a slight blur
-        image = image.filter(ImageFilter.SMOOTH)
+        image = image.filter(ImageFilter.SMOOTH_MORE)
         
         return image, text
 
