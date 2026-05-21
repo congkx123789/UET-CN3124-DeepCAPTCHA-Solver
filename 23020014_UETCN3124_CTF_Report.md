@@ -128,8 +128,8 @@ Kết quả của sự can thiệp này vô cùng ngoạn mục:
 - **Epoch 21:** Validation Accuracy đạt 84.93%
 
 > **[BẰNG CHỨNG THỰC NGHIỆM]**
-> *(Sinh viên thay thế bức ảnh bên dưới bằng ảnh chụp màn hình Terminal lúc đang train model thể hiện các chỉ số Loss/Accuracy)*
-> ![Ảnh chụp màn hình Terminal lúc Train](test_captcha.png)
+> *Đồ thị quá trình huấn luyện thể hiện hàm loss (CTC Loss) và độ chính xác Validation Accuracy của mô hình CRNN:*
+> ![Đồ thị quá trình huấn luyện](results/training_curves.png)
 
 ### 4.4 Kết quả Đánh giá chung cuộc
 Kết quả cao nhất ghi nhận được lưu tại tệp `best_model.pth` với độ chính xác đạt **84.93%**.
@@ -162,8 +162,11 @@ Started session 9ee8b019-d906-479b-be52-35d759a37223
 ```
 
 > **[BẰNG CHỨNG THỰC NGHIỆM TẤN CÔNG THÀNH CÔNG]**
-> *(Sinh viên thay thế bức ảnh bên dưới bằng ảnh chụp màn hình Terminal lúc chạy file exploit.py lên tới chuỗi 50 và nhận được Flag)*
-> ![Ảnh chụp màn hình Tấn công và lấy Flag](test_captcha.png)
+> *Minh họa kết quả nhận diện CAPTCHA thực tế trên tập kiểm thử (Validation):*
+> ![Lưới kết quả nhận diện CAPTCHA](results/sample_predictions_grid.png)
+>
+> *Đánh giá hiệu năng nhận diện ký tự chi tiết (Top 10 ký tự dễ nhất và khó nhất):*
+> ![Hiệu năng nhận diện ký tự chi tiết](results/character_accuracies.png)
 Với độ chính xác xấp xỉ 85%, hệ thống liên tục tạo ra các chuỗi giải đúng (Streak) kéo dài từ 10 đến 20 CAPTCHA. Bằng phương pháp Brute-force tốc độ cao, xác suất để đạt được 50 CAPTCHA liên tục là hoàn toàn khả thi trong thời gian ngắn, qua đó đoạt được Flag của Server.
 
 ## CHƯƠNG 6: XỬ LÝ SỰ CỐ KỸ THUẬT (TROUBLESHOOTING)
